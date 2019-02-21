@@ -1,7 +1,3 @@
-#include<cstdio>
-#include<vector>
-#include<algorithm>
-#include<functional>
 class Fenwick{
 private:
     int length, vecsize;
@@ -11,6 +7,7 @@ public:
     ~Fenwick();
     void add(int a,long long x);
     long long sum(int a);
+    long long sum(int a,int b);
     long long operator[](int i);
     void init();
     void set(int a,long long x);
@@ -40,6 +37,10 @@ long long Fenwick::sum(int a){
     }
     return sum;
 }
+// v[a]+v[a+1]+...+v[b-1]
+long long Fenwick::sum(int a,int b){
+    return sum(b)-sum(a);
+}
 // v[a]+=x
 void Fenwick::add(int a,long long x){
     while(a<length){
@@ -47,34 +48,15 @@ void Fenwick::add(int a,long long x){
         a+=a&(-a);
     }
 }
+// v[a]=x
+void Fenwick::set(int a,long long x){
+    add(a,x-operator[](a));
+}
+long long Fenwick::operator[](int i){
+    return sum(i)-sum(i-1);
+}
 void Fenwick::init(){
     for(int i=0;i<vecsize;i++){
         vec[i]=0;
     }
-}
-int main(){
-    int n,m,l,r;
-    scanf("%d%d",&n,&m);
-    std::vector<std::pair<int,int>> vp;
-    for(int i=0;i<n;i++){
-        scanf("%d%d",&l,&r);
-        vp.push_back({r-l+1,l});
-    }
-    std::sort(vp.begin(),vp.end(),std::greater<std::pair<int,int>>());
-    Fenwick cumsum(m+2);
-    for(int d=1;d<=m;d++){
-        while(!vp.empty() && (*vp.rbegin()).first<=d){
-            l=(*vp.rbegin()).second;
-            r=(*vp.rbegin()).first+l-1;
-            cumsum.add(l,1);
-            cumsum.add(r+1,-1);
-            vp.pop_back();
-        }
-        int ans=vp.size();
-        for(int k=d;k<=m;k+=d){
-            ans+=cumsum.sum(k);
-        }
-        printf("%d\n",ans);
-    }
-    return 0;
 }
