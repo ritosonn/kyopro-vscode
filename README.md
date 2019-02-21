@@ -25,7 +25,16 @@ https://atcoder.jp/contests/ (contest) /tasks/ (taskname) _ (問題番号)
         "key": "ctrl+shift+t",
         "command": "workbench.action.tasks.runTask",
         "args": "submit"
+    },
+    {
+        "key": "ctrl+shift+c",
+        "command": "workbench.action.tasks.runTask",
+        "args": "cleanio"
     }
 ]
 ```
 * 上記の設定後`ctrl+shift+t`キーを押すと、アクティブなウインドウにあるプログラムに対して（コンパイルされたのち）`sandbox.py -judge`が実行される。
+
+## ライブラリの利用
+* テストのときは`#include"lib/graph.hpp"`等と付け加える
+* submitではベタでコピペしないと使えない
