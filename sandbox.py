@@ -29,7 +29,9 @@ def getio(programname,website=None):
         website="https://atcoder.jp/contests/"+config["contest"]+"/tasks/"+config["taskname"]+"_"+programname
     with open(".secret/session.pickle","rb") as fp:
         (s,csrftoken)=pickle.load(fp)
-    samples = BeautifulSoup(s.get(website).content,"html.parser").find("span", class_="lang-ja").find_all("pre")
+    samples = BeautifulSoup(s.get(website).content,"html.parser").find_all("pre")
+    samples = samples[0:len(samples)//2] #delete english version
+    # print(samples)
     isinput=True
     sampleNo=1
     startNo=1 if len(samples)%2==1 else 2 #input sample or IO sample
@@ -48,7 +50,7 @@ def submit(programname):
         (s,csrftoken)=pickle.load(fp)
     with open("config/thismatch.json") as jsonfile:
         config=json.load(jsonfile)
-    with open(programname+".cpp") as prog:
+    with open(programname+".cpp",encoding="utf-8") as prog:
         source = prog.read()
     data = {
         "csrf_token": csrftoken,
@@ -113,7 +115,7 @@ def judge(programname):
     sampleNo-=1
     print(str(sampleNo)+"judges complete.")
     print(str(ac)+"AC,"+str(wa)+"WA,"+str(tle)+"TLE")
-    return ac==sampleNo
+    return ac>0 and ac==sampleNo
 
 def help():
     print("usage:")

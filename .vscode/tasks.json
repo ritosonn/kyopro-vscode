@@ -32,6 +32,26 @@
             ],
             "problemMatcher": [],
             "dependsOn": "build"
+        },
+        {
+            "label": "cleanio",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "./sandbox.py",
+                "-cleanio"
+            ]
+        },
+        {
+            "label": "judge",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "./sandbox.py",
+                "-judge",
+                "${fileBasenameNoExtension}"
+            ],
+            "dependsOn": "build"
         }
     ]
 }
