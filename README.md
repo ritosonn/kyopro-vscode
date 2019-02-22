@@ -37,4 +37,5 @@ https://atcoder.jp/contests/ (contest) /tasks/ (taskname) _ (問題番号)
 
 ## ライブラリの利用
 * テストのときは`#include"lib/graph.hpp"`等と付け加える
-* submitではベタでコピペしないと使えない
+* submitではベタでコピペしないと使えない（`#include"lib`が含まれるコードを提出するときには警告を出す）
+
