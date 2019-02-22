@@ -1,3 +1,4 @@
+//一点更新と区間和（あるいは差分をとって区間更新と一点の値）をO(log N)で計算する
 class Fenwick{
 private:
     int length, vecsize;
@@ -26,7 +27,7 @@ Fenwick::Fenwick(int l){
 Fenwick::~Fenwick(){
     delete[] vec;
 }
-// v[0]+v[1]+...+v[a-1]
+// v[0]+v[1]+...+v[a-1], O(log N)
 long long Fenwick::sum(int a){
     if(a<0)return 0;
     if(a>length)a=length;
@@ -37,18 +38,18 @@ long long Fenwick::sum(int a){
     }
     return sum;
 }
-// v[a]+v[a+1]+...+v[b-1]
+// v[a]+v[a+1]+...+v[b-1], O(log N)
 long long Fenwick::sum(int a,int b){
     return sum(b)-sum(a);
 }
-// v[a]+=x
+// v[a]+=x, O(log N)
 void Fenwick::add(int a,long long x){
     while(a<length){
         vec[a]+=x;
         a+=a&(-a);
     }
 }
-// v[a]=x
+// v[a]=x, O(log N)
 void Fenwick::set(int a,long long x){
     add(a,x-operator[](a));
 }
