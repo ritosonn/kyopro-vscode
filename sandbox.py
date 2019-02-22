@@ -117,6 +117,15 @@ def judge(programname):
     print(str(ac)+"AC,"+str(wa)+"WA,"+str(tle)+"TLE")
     return ac>0 and ac==sampleNo
 
+def uselibrary(programname):
+    with open(programname+".cpp") as fp:
+        l=fp.readline()
+        while l:
+            if l.find('#include"lib/')>=0:
+                return True
+            l=fp.readline()
+        return False
+
 def help():
     print("usage:")
     print("./sandbox.py -judge [programname]  : judge program from sample.")
@@ -129,6 +138,12 @@ elif sys.argv[1]=="-judge":
     judge(sys.argv[2])
 elif sys.argv[1]=="-submit":
     if judge(sys.argv[2]):
+        if uselibrary(sys.argv[2]):
+            print("using library. submit anyway? [y/N]: ",end="")
+            yn=input()
+            if not (yn=="y" or yn=="Y"):
+                print("submit interrupted.")
+                sys.exit()
         submit(sys.argv[2])
     else:
         print("submit interrupted.")
