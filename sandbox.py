@@ -30,8 +30,9 @@ def getio(programname,website=None):
     with open(".secret/session.pickle","rb") as fp:
         (s,csrftoken)=pickle.load(fp)
     samples = BeautifulSoup(s.get(website).content,"html.parser").find_all("pre")
-    samples = samples[0:len(samples)//2] #delete english version
-    # print(samples)
+    if len(samples)%2==0:
+        samples = samples[0:len(samples)//2] #delete english version
+    print(samples)
     isinput=True
     sampleNo=1
     startNo=1 if len(samples)%2==1 else 2 #input sample or IO sample
