@@ -32,7 +32,7 @@ def getio(programname,website=None):
     samples = BeautifulSoup(s.get(website).content,"html.parser").find_all("pre")
     if len(samples)%2==0:
         samples = samples[0:len(samples)//2] #delete english version
-    print(samples)
+    # print(samples)
     isinput=True
     sampleNo=1
     startNo=1 if len(samples)%2==1 else 2 #input sample or IO sample
@@ -119,7 +119,7 @@ def judge(programname):
     return ac>0 and ac==sampleNo
 
 def uselibrary(programname):
-    with open(programname+".cpp") as fp:
+    with open(programname+".cpp",encoding="utf-8") as fp:
         l=fp.readline()
         while l:
             if l.find('#include"lib/')>=0:
