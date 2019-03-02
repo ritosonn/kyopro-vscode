@@ -12,7 +12,7 @@ public:
     long long operator[](int i);
     void init();
     void set(int a,long long x);
-    void debug();
+    // void debug();
 };
 Fenwick::Fenwick(int l){
     length=l;
@@ -57,7 +57,7 @@ void Fenwick::init(){
         vec[i]=0;
     }
 }
-void Fenwick::debug(){
-    for(int i=0;i<=length;i++)printf("%lld ",vec[i]);
-    printf("\n");
-}
+// void Fenwick::debug(){
+//     for(int i=0;i<=length;i++)printf("%lld ",vec[i]);
+//     printf("\n");
+// }
