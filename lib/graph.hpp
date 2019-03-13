@@ -37,9 +37,29 @@ public:
     }
 
     //---一般のグラフに使えるアルゴリズム---
+    
+    //単一頂点を始点とする最短経路 O(V+E)
+    //制約 : weightがすべて1（つまり最短パス長）
+    void shortestPath_bfs(int *l,int s){
+        for(int i=0;i<numVertex;i++)l[i]=-1;
+        std::queue<int> q;
+        l[s]=0;
+        q.push(s);
+        while(!q.empty()){
+            int v=q.front();
+            q.pop();
+            for(int i=0;i<adj[v].size();i++){
+                edge &e = adj[v][i];
+                if(e.weight>0 && l[e.to]<0){
+                    l[e.to]=l[v]+1;
+                    q.push(e.to);
+                }
+            }
+        }
+    }
 
-    //ダイクストラ法（単一頂点を始点とする最短経路）O(E+VlogV)
-    //制約 : weight>=0
+    //単一頂点を始点とする最短経路 O(E+VlogV)
+    //制約 : weight>=0, weightがすべて等しいときはO(V^2)
     void shortestPath_Dijkstra(long long l[],int s,int prev[]=NULL){
         for(int i=0;i<numVertex;i++)l[i]=infty;
         if(prev!=NULL)for(int i=0;i<numVertex;i++)prev[i]=-1;
@@ -60,6 +80,58 @@ public:
                 }
             }
         }
+    }
+
+private:
+    //最短距離の更新
+    bool relaxing_Bellman_Ford(long long l[]){
+        bool relaxed=false;
+        for(int u=0;u<numVertex;u++){
+            for(int i=0;i<adj[u].size();i++){
+                edge &e=adj[u][i];
+                if(l[e.to]>l[u]+e.weight){
+                    l[e.to]=l[u]+e.weight;
+                    relaxed=true;
+                }
+            }
+        }
+        return relaxed;
+    }
+public:
+    //単一頂点を始点とする最短経路 O(VE)
+    //返り値はsを始点とする閉路の存在
+    bool shortestPath_Bellman_Ford(long long l[],int s){
+        for(int i=0;i<numVertex;i++)l[i]=infty;
+        l[s]=0;
+        for(int rep=0;rep<numVertex;rep++){
+            if(!relaxing_Bellman_Ford(l))return false;
+        }
+        return true;
+    }
+    //sと各頂点を通る閉路の存在 O(VE)
+    bool find_negative_loop(int s,bool b[]){
+        long long *l=new long long[numVertex];
+        for(int i=0;i<numVertex;i++)l[i]=0;
+        for(int rep=0;rep<numVertex;rep++){
+            if(!relaxing_Bellman_Ford(l))return false;
+        }
+        //負閉路が存在する\iff relaxingし終わった状態からさらに更新される
+        long long *l2=new long long[numVertex];
+        for(int i=0;i<numVertex;i++)l2[i]=l[i];
+        for(int rep=0;rep<numVertex;rep++){
+            relaxing_Bellman_Ford(l2);
+        }
+        for(int i=0;i<numVertex;i++)b[i]=(l[i]!=l2[i]);
+        return true;
+    }
+    //負閉路の存在 O(VE)
+    bool find_negative_loop(){
+        long long *l=new long long[numVertex];
+        for(int i=0;i<numVertex;i++)l[i]=0;
+        for(int rep=0;rep<numVertex;rep++){
+            if(!relaxing_Bellman_Ford(l))return false;
+        }
+        return true;
     }
 
     //sと同じ連結成分にある頂点集合を返す
@@ -126,24 +198,6 @@ public:
     }
 
 private:
-    //level[i]=頂点sからiまでの最短パス長
-    void bfs_Dinic(int s,int *level){
-        for(int i=0;i<numVertex;i++)level[i]=-1;
-        std::queue<int> q;
-        level[s]=0;
-        q.push(s);
-        while(!q.empty()){
-            int v=q.front();
-            q.pop();
-            for(int i=0;i<adj[v].size();i++){
-                edge &e = adj[v][i];
-                if(e.weight>0 && level[e.to]<0){
-                    level[e.to]=level[v]+1;
-                    q.push(e.to);
-                }
-            }
-        }
-    }
     //vからtへの増加パスをdfsで探す
     //Ford-Fulkerson法で用いたdfsから改良
     long long dfs_Dinic(int v,int t,long long f,int *level,int *iter){
@@ -170,7 +224,7 @@ public:
         int *iter=new int[numVertex];
         long long flow=0;
         while(true){
-            bfs_Dinic(s,level);
+            shortestPath_bfs(level,s);
             if(level[t]<0)return flow;
             for(int i=0;i<numVertex;i++)iter[i]=0;
             long long f;
