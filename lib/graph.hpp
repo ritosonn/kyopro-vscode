@@ -88,7 +88,7 @@ public:
 private:
     //vからtへの増加パスをdfsで探す
     //fは流量の上界のうち現時点で判明している最小のもの
-    long long dfs_Ford_fulkerson(int v,int t,long long f,bool* used){
+    long long dfs_Ford_Fulkerson(int v,int t,long long f,bool* used){
         //始点と終点が一致していれば無限に流せる
         if(v==t)return f;
         used[v]=true;
@@ -99,7 +99,7 @@ private:
             if(!used[e.to]&&e.weight>0){
                 //e.toから終点tまで流せる量を取得する
                 //流量の上界は、eで流せる量でも上から抑えられる
-                long long d = dfs_Ford_fulkerson(e.to, t, std::min(f,e.weight), used);
+                long long d = dfs_Ford_Fulkerson(e.to, t, std::min(f,e.weight), used);
                 //もし流せるなら
                 if(d>0){
                     //dだけ逆流させればvからtにもd流せる
@@ -119,12 +119,64 @@ public:
         long long flow=0;
         while(true){
             for(int i=0;i<numVertex;i++)used[i]=false;
-            long long f=dfs_Ford_fulkerson(s,t,infty,used);
+            long long f=dfs_Ford_Fulkerson(s,t,infty,used);
             if(f==0)return flow;
             flow+=f;
         }
     }
 
+private:
+    //level[i]=頂点sからiまでの最短パス長
+    void bfs_Dinic(int s,int *level){
+        for(int i=0;i<numVertex;i++)level[i]=-1;
+        std::queue<int> q;
+        level[s]=0;
+        q.push(s);
+        while(!q.empty()){
+            int v=q.front();
+            q.pop();
+            for(int i=0;i<adj[v].size();i++){
+                edge &e = adj[v][i];
+                if(e.weight>0 && level[e.to]<0){
+                    level[e.to]=level[v]+1;
+                    q.push(e.to);
+                }
+            }
+        }
+    }
+    //vからtへの増加パスをdfsで探す
+    //Ford-Fulkerson法で用いたdfsから改良
+    long long dfs_Dinic(int v,int t,long long f,int *level,int *iter){
+        if(v==t)return f;
+        //途中まで調べている場合はそこからiterationする
+        for(int &i=iter[v];i<adj[v].size();i++){
+            edge &e=adj[v][i];
+            //最短パス長の長くなる方向にある辺だけ調べる
+            if(e.weight>0 && level[v]<level[e.to]){
+                long long d=dfs_Dinic(e.to,t,std::min(f,e.weight),level,iter);
+                if(d>0){
+                    e.weight-=d;
+                    adj[e.to][e.rev].weight+=d;
+                    return d;
+                }
+            }
+        }
+        return 0;
+    }
+public:
+    //最大流O(EV^2)
+    long long maxFlow_Dinic(int s,int t){
+        int *level=new int[numVertex];
+        int *iter=new int[numVertex];
+        long long flow=0;
+        while(true){
+            bfs_Dinic(s,level);
+            if(level[t]<0)return flow;
+            for(int i=0;i<numVertex;i++)iter[i]=0;
+            long long f;
+            while((f=dfs_Dinic(s,t,infty,level,iter))>0)flow+=f;
+        }
+    }
     //----debug----
 
     void debugPrint(){
