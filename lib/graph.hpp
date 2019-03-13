@@ -27,15 +27,16 @@ public:
         adj=new std::vector<edge>[v];
     }
     ~Graph(){ delete[] adj; }
+    //有向辺を追加
     void addEdge(int u,int v,long long w=1LL){
-        adj[u].push_back({u,v,w});
+        adj[u].push_back({u,v,w}); //逆辺は未定義
         numEdge++;
     }
     //フロー計算用の有向辺+逆辺の追加
     //weightは容量、fromは逆辺への参照
     void addNetwork(int u,int v,long long w=1LL){
         adj[u].push_back({(int)adj[v].size(),v,w});
-        adj[v].push_back({(int)adj[u].size()-1,u,w});
+        adj[v].push_back({(int)adj[u].size()-1,u,0});
         numEdge++;
     }
 
@@ -194,7 +195,7 @@ public:
             q.pop();
             for(auto i=adj[v].begin();i!=adj[v].end();i++){
                 int w=(*i).to;
-                q.push(w);
+                if(ans.count(w)==0)q.push(w);
             }
         }
         return ans;
