@@ -5,15 +5,19 @@
 #include<unordered_set>
 long long const infty = 0x3fffffffffffff;
 struct edge{
+    int from,to;
     long long weight;
-    int to,rev;
 };
-//隣接リスト表現
 class Graph{
 protected:
-    int numVertex,numEdge;
+    //隣接リスト
     std::vector<edge> *adj;
 public:
+    //頂点の数
+    int numVertex;
+    //辺の数
+    int numEdge;
+
     //---基本---
 
     //v頂点のグラフを作成する（頂点の番号は0-indexed）
@@ -23,17 +27,28 @@ public:
         adj=new std::vector<edge>[v];
     }
     ~Graph(){ delete[] adj; }
-    int getNumVertex(){ return numVertex; }
-    int getNumEdge(){ return numEdge; }
     void addEdge(int u,int v,long long w=1LL){
-        adj[u].push_back({w,v,-1});
+        adj[u].push_back({u,v,w});
         numEdge++;
     }
     //フロー計算用の有向辺+逆辺の追加
+    //weightは容量、fromは逆辺への参照
     void addNetwork(int u,int v,long long w=1LL){
-        adj[u].push_back({w,v,(int)adj[v].size()});
-        adj[v].push_back({0,u,(int)adj[u].size()-1});
+        adj[u].push_back({(int)adj[v].size(),v,w});
+        adj[v].push_back({(int)adj[u].size()-1,u,w});
         numEdge++;
+    }
+
+    //辺の重みの和
+    long long sum_weight(bool isDirected=true){
+        long long sum=0;
+        for(int i=0;i<numVertex;i++){
+            for(int j=0;j<(int)adj[i].size();j++){
+                sum+=adj[i][j].weight;
+            }
+        }
+        if(isDirected)return sum;
+        else return sum/2; //無向グラフなら両方の向きの辺が隣接リストに入っている
     }
 
     //---一般のグラフに使えるアルゴリズム---
@@ -76,7 +91,7 @@ public:
                 if(l[v]>l[u]+w){
                     l[v]=l[u]+w;
                     if(prev!=NULL)prev[v]=u;
-                    pq.push({l[v],v,-1});
+                    pq.push({u,v,l[v]});
                 }
             }
         }
@@ -135,6 +150,39 @@ public:
         return true;
     }
 
+    //sを含む連結成分の最小全域木 O(E+VlogV)
+    Graph minimumSpanTree_Prim(int s=0){
+        Graph g(numVertex);
+        //pq={頂点0の隣接辺}で初期化、weightの小さいほうからtop()に出てくる
+        auto cmp=[](const edge &a,const edge &b)->bool { return a.weight>b.weight; };
+        std::priority_queue<edge,std::vector<edge>,decltype(cmp)> pq(cmp);
+        for(int i=0;i<(int)adj[s].size();i++){
+            pq.push(adj[s][i]);
+        }
+        //isvisited[i]=(頂点iが作成中の木gに含まれるか)
+        bool *isvisited=new bool[numVertex];
+        for(int i=0;i<numVertex;i++)isvisited[i]=false;
+        isvisited[s]=true;
+        
+        while(true){
+            //pq.top()が、訪問済みの点と未訪問の点を結ぶ辺になるまでpopする
+            while(!pq.empty() && isvisited[pq.top().from]==isvisited[pq.top().to])pq.pop();
+            if(pq.empty())return g;
+            edge e=pq.top();
+            pq.pop();
+            //eの未訪問な端点vを訪問済みにする
+            int v=isvisited[e.from]?e.to:e.from;
+            isvisited[v]=true;
+            //vから未訪問点へのびる辺をpqに追加
+            for(int i=0;i<(int)adj[v].size();i++){
+                if(!isvisited[adj[v][i].to])pq.push(adj[v][i]);
+            }
+            //eをgに追加
+            g.addEdge(e.from,e.to,e.weight);
+            g.addEdge(e.to,e.from,e.weight);
+        }
+    }
+
     //sと同じ連結成分にある頂点集合を返す
     std::unordered_set<int> isSameComponent(int s){
         std::queue<int> q;
@@ -177,7 +225,7 @@ private:
                 if(d>0){
                     //dだけ逆流させればvからtにもd流せる
                     itr->weight-=d;
-                    adj[e.to][e.rev].weight+=d;
+                    adj[e.to][e.from].weight+=d;
                     return d;
                 }
             }
@@ -211,7 +259,7 @@ private:
                 long long d=dfs_Dinic(e.to,t,std::min(f,e.weight),level,iter);
                 if(d>0){
                     e.weight-=d;
-                    adj[e.to][e.rev].weight+=d;
+                    adj[e.to][e.from].weight+=d;
                     return d;
                 }
             }
