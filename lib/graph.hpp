@@ -39,7 +39,7 @@ public:
     //---一般のグラフに使えるアルゴリズム---
     
     //単一頂点を始点とする最短経路 O(V+E)
-    //制約 : weightがすべて1（つまり最短パス長）
+    //制約 : weightをすべて1とみなす（つまり最短パス長）
     void shortestPath_bfs(int *l,int s){
         for(int i=0;i<numVertex;i++)l[i]=-1;
         std::queue<int> q;
@@ -48,7 +48,7 @@ public:
         while(!q.empty()){
             int v=q.front();
             q.pop();
-            for(int i=0;i<adj[v].size();i++){
+            for(int i=0;i<(int)adj[v].size();i++){
                 edge &e = adj[v][i];
                 if(e.weight>0 && l[e.to]<0){
                     l[e.to]=l[v]+1;
@@ -87,7 +87,8 @@ private:
     bool relaxing_Bellman_Ford(long long l[]){
         bool relaxed=false;
         for(int u=0;u<numVertex;u++){
-            for(int i=0;i<adj[u].size();i++){
+            if(l[u]==infty)continue;
+            for(int i=0;i<(int)adj[u].size();i++){
                 edge &e=adj[u][i];
                 if(l[e.to]>l[u]+e.weight){
                     l[e.to]=l[u]+e.weight;
@@ -108,8 +109,8 @@ public:
         }
         return true;
     }
-    //sと各頂点を通る閉路の存在 O(VE)
-    bool find_negative_loop(int s,bool b[]){
+    //各頂点を通る閉路の存在 O(VE)
+    bool find_negative_loop(bool b[]){
         long long *l=new long long[numVertex];
         for(int i=0;i<numVertex;i++)l[i]=0;
         for(int rep=0;rep<numVertex;rep++){
@@ -151,7 +152,7 @@ public:
         return ans;
     }
     bool isConnected(){
-        return isSameComponent(0).size()==numVertex;
+        return (int)(isSameComponent(0).size())==numVertex;
     }
     bool isTree(){
         return isConnected()&&(numEdge+1==numVertex);
@@ -203,7 +204,7 @@ private:
     long long dfs_Dinic(int v,int t,long long f,int *level,int *iter){
         if(v==t)return f;
         //途中まで調べている場合はそこからiterationする
-        for(int &i=iter[v];i<adj[v].size();i++){
+        for(int &i=iter[v];i<(int)adj[v].size();i++){
             edge &e=adj[v][i];
             //最短パス長の長くなる方向にある辺だけ調べる
             if(e.weight>0 && level[v]<level[e.to]){
