@@ -1,80 +1,48 @@
 #include<cstdio>
-#include<vector>
-#include<algorithm>
-#include<functional>
-class Fenwick{
-private:
-    int length, vecsize;
-    long long *vec;
-public:
-    Fenwick(int l);
-    ~Fenwick();
-    void add(int a,long long x);
-    long long sum(int a);
-    long long operator[](int i);
-    void init();
-    void set(int a,long long x);
-};
-Fenwick::Fenwick(int l){
-    this->length=l;
-    vecsize=1;
-    while(l>0){
-        vecsize<<=1;
-        l>>=1;
-    }
-    vecsize++;
-    this->vec=new long long[vecsize];
-    init();
+int numofbits(int bits){
+    bits = (bits & 0x55555555) + (bits >> 1 & 0x55555555);
+    bits = (bits & 0x33333333) + (bits >> 2 & 0x33333333);
+    bits = (bits & 0x0f0f0f0f) + (bits >> 4 & 0x0f0f0f0f);
+    bits = (bits & 0x00ff00ff) + (bits >> 8 & 0x00ff00ff);
+    return (bits & 0x0000ffff) + (bits >>16 & 0x0000ffff);
 }
-Fenwick::~Fenwick(){
-    delete[] vec;
+int msb(int bits){
+    bits |= (bits >> 1);
+    bits |= (bits >> 2);
+    bits |= (bits >> 4);
+    bits |= (bits >> 8);
+    bits |= (bits >> 16);
+    return (bits + 1) >> 1;
 }
-// v[0]+v[1]+...+v[a-1]
-long long Fenwick::sum(int a){
-    if(a<0)return 0;
-    if(a>length)a=length;
-    long long sum=0;
-    while(a>0){
-        sum+=vec[a];
-        a-=a&(-a);
-    }
-    return sum;
+int lsb(int bits){
+    return bits & (-bits);
 }
-// v[a]+=x
-void Fenwick::add(int a,long long x){
-    while(a<length){
-        vec[a]+=x;
-        a+=a&(-a);
-    }
-}
-void Fenwick::init(){
-    for(int i=0;i<vecsize;i++){
-        vec[i]=0;
+//nビットの数字の列{x=a_0,a_1,...,a_{2^n-1}=y} を出力する
+//（ただしnumofbits(a_i xor a_{i+1})=1, n=numofbits(mask), a_iで変化するビットはmaskだけ）
+void print_gray(int x,int y,int mask){
+    if(numofbits(mask)==1){
+        printf("%d %d",x,y);
+    }else{
+        //aはxとyが異なる最小ビット、bはmaskのどれかでaと異なるもの
+        //中間地点として、xから1bitずらしたものを使う
+        int a=lsb(x^y),b=msb(mask);
+        if(a==b)b=lsb(mask);//maskが2bit以上あれば別のbitが出てくる
+        int z=x^b;
+        //前半はaをxと同じ状態にfixしてxからzまで
+        print_gray(x,z,mask^a);
+        printf(" ");
+        //後半はaをyと同じ状態にfixしてzからyまで
+        print_gray(z^a,y,mask^a);
     }
 }
 int main(){
-    int n,m,l,r;
-    scanf("%d%d",&n,&m);
-    std::vector<std::pair<int,int>> vp;
-    for(int i=0;i<n;i++){
-        scanf("%d%d",&l,&r);
-        vp.push_back({r-l+1,l});
-    }
-    std::sort(vp.begin(),vp.end(),std::greater<std::pair<int,int>>());
-    Fenwick cumsum(m+2);
-    for(int d=1;d<=m;d++){
-        while(!vp.empty() && (*vp.rbegin()).first<=d){
-            l=(*vp.rbegin()).second;
-            r=(*vp.rbegin()).first+l-1;
-            cumsum.add(l,1);
-            cumsum.add(r+1,-1);
-            vp.pop_back();
-        }
-        int ans=vp.size();
-        for(int k=d;k<=m;k+=d){
-            ans+=cumsum.sum(k);
-        }
-        printf("%d\n",ans);
+    int n,a,b;
+    scanf("%d%d%d",&n,&a,&b);
+    if(numofbits(a^b)%2==0)printf("NO\n");
+    else{
+        printf("YES\n");
+        print_gray(a,b,(1<<n)-1);
+        printf("\n");
     }
     return 0;
 }
